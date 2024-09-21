@@ -102,11 +102,11 @@ reg            ival_write;
 reg [  3-1: 0] pause_pid_on_sync;  // register to specify which gains (P, I, and/or D) are paused during active sync signal
 reg enable_differential_mode;  // register to specify which gains (P, I, and/or D) are paused during active sync signal
 wire pause_i_on_sync;
-assign pause_i = pause_pid_on_sync[0] & paused_i;
+assign pause_i = pause_pid_on_sync[0] & ~paused_i;
 wire pause_p_on_sync;
-assign pause_p = pause_pid_on_sync[1] & paused_i;
+assign pause_p = pause_pid_on_sync[1] & ~paused_i;
 wire pause_d_on_sync;
-assign pause_d = pause_pid_on_sync[2] & paused_i;
+assign pause_d = pause_pid_on_sync[2] & ~paused_i;
 reg [ GAINBITS-1: 0] set_kp;   // Kp
 reg [ GAINBITS-1: 0] set_ki;   // Ki
 reg [ GAINBITS-1: 0] set_kd;   // Kd
@@ -233,6 +233,7 @@ assign kp_mult = (pause_p==1'b1) ? $signed({15+GAINBITS{1'b0}}) : $signed(error)
 //formerly
 //-localparam IBW = 64; //integrator bit-width. Over-represent the integral sum to record longterm drifts
 //-reg   [15+GAINBITS-1: 0] ki_mult  ;
+localparam signed [IBW-ISR-1: 0] fixed_int_value = 1638;
 localparam IBW = ISR+16; //integrator bit-width. Over-represent the integral sum to record longterm drifts (overrepresented by 2 bits)
 reg signed  [16+GAINBITS-1: 0] ki_mult ;
 wire signed [IBW  : 0] int_sum       ;
@@ -258,7 +259,9 @@ always @(posedge clk_i) begin
 end
 
 assign int_sum = (pause_i==1'b1) ? $signed(int_reg) : $signed(ki_mult) + $signed(int_reg);
-assign int_shr = $signed(int_reg[IBW-1:ISR]) ;
+assign int_shr = (pause_i==1'b1) ? fixed_int_value  : $signed(int_reg[IBW-1:ISR]) ;
+// assign int_shr = $signed(int_reg[IBW-1:ISR]) ;
+
 
 //---------------------------------------------------------------------------------
 //  Derivative - 2 cycles delay (but treat as 1 cycle because its not
