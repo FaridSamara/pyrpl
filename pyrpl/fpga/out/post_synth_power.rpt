@@ -1,7 +1,7 @@
 Copyright 1986-2015 Xilinx, Inc. All Rights Reserved.
 ----------------------------------------------------------------------------------------
 | Tool Version     : Vivado v.2015.4 (win64) Build 1412921 Wed Nov 18 09:43:45 MST 2015
-| Date             : Thu Sep 19 07:45:51 2024
+| Date             : Sat Sep 21 19:52:40 2024
 | Host             : FaridS-LP running 64-bit major release  (build 9200)
 | Command          : report_power -file out/post_synth_power.rpt
 | Design           : red_pitaya_top
@@ -50,16 +50,16 @@ Table of Contents
 | On-Chip                  | Power (W) | Used     | Available | Utilization (%) |
 +--------------------------+-----------+----------+-----------+-----------------+
 | Clocks                   |     0.065 |       15 |       --- |             --- |
-| Slice Logic              |     0.141 |    31805 |       --- |             --- |
-|   LUT as Logic           |     0.120 |    16106 |     17600 |           91.51 |
+| Slice Logic              |     0.140 |    31908 |       --- |             --- |
+|   LUT as Logic           |     0.119 |    16156 |     17600 |           91.80 |
 |   CARRY4                 |     0.016 |     1434 |      4400 |           32.59 |
-|   Register               |     0.005 |    10673 |     35200 |           30.32 |
+|   Register               |     0.005 |    10715 |     35200 |           30.44 |
 |   F7/F8 Muxes            |    <0.001 |      438 |     17600 |            2.49 |
 |   LUT as Shift Register  |    <0.001 |       71 |      6000 |            1.18 |
 |   Others                 |     0.000 |      386 |       --- |             --- |
 |   BUFG                   |     0.000 |        1 |        32 |            3.13 |
 |   LUT as Distributed RAM |     0.000 |       24 |      6000 |            0.40 |
-| Signals                  |     0.131 |    24599 |       --- |             --- |
+| Signals                  |     0.131 |    24727 |       --- |             --- |
 | Block RAM                |     0.103 |       34 |        60 |           56.67 |
 | PLL                      |     0.097 |        1 |         2 |           50.00 |
 | DSPs                     |     0.040 |       30 |        80 |           37.50 |
@@ -67,7 +67,7 @@ Table of Contents
 | XADC                     |     0.002 |        1 |       --- |             --- |
 | PS7                      |     1.292 |        1 |       --- |             --- |
 | Static Power             |     0.152 |          |           |                 |
-| Total                    |     2.315 |          |           |                 |
+| Total                    |     2.314 |          |           |                 |
 +--------------------------+-----------+----------+-----------+-----------------+
 
 
@@ -165,7 +165,7 @@ Table of Contents
 +--------------------------------------------------+-----------+
 | Name                                             | Power (W) |
 +--------------------------------------------------+-----------+
-| red_pitaya_top                                   |     2.163 |
+| red_pitaya_top                                   |     2.162 |
 |   i_ams                                          |     0.004 |
 |   i_asg                                          |     0.058 |
 |     adv_trig_a                                   |     0.001 |
@@ -173,7 +173,7 @@ Table of Contents
 |     ch[0]                                        |     0.025 |
 |     ch[1]                                        |     0.024 |
 |     prng                                         |     0.002 |
-|   i_dsp                                          |     0.322 |
+|   i_dsp                                          |     0.321 |
 |     genblk2[0].i_pid                             |     0.025 |
 |       pidfilter                                  |     0.014 |
 |         genblk2[0].lpf                           |     0.005 |
@@ -217,8 +217,8 @@ Table of Contents
 |       pfd_block                                  |    <0.001 |
 |     genblk4[6].iq                                |     0.061 |
 |       demodulator                                |     0.004 |
-|       inputfilter                                |     0.002 |
-|         genblk2[0].lpf                           |     0.002 |
+|       inputfilter                                |     0.003 |
+|         genblk2[0].lpf                           |     0.003 |
 |       iq_fgen                                    |     0.019 |
 |       iqfilter[0]                                |     0.009 |
 |         genblk2[0].lpf                           |     0.004 |
@@ -271,7 +271,7 @@ Table of Contents
 |   i_iobufp[5]                                    |    <0.001 |
 |   i_iobufp[6]                                    |    <0.001 |
 |   i_iobufp[7]                                    |    <0.001 |
-|   i_ps                                           |     1.316 |
+|   i_ps                                           |     1.317 |
 |     axi_master[0]                                |    <0.001 |
 |       axi_awfifo_reg_0_15_30_35                  |    <0.001 |
 |       axi_awfifo_reg_0_15_36_36                  |    <0.001 |

@@ -233,6 +233,7 @@ class Pid(FilterModule):
                          "max_voltage",
                          "min_voltage",
                          "pause_gains",
+                         "paused_value",
                          "paused",
                          "differential_mode_enabled",
                          ]
@@ -261,6 +262,9 @@ class Pid(FilterModule):
 
     setpoint = FloatRegister(0x104, bits=14, norm= 2 **13,
                              doc="pid setpoint [volts]")
+    
+    paused_value = FloatRegister(0x130, bits=14, norm=2 ** 13,
+                              doc="PID paused value [volts] used during pausing")
 
     min_voltage = FloatRegister(0x124, bits=14, norm= 2 **13,
                                 doc="minimum output signal [volts]")

@@ -97,16 +97,17 @@ module red_pitaya_pid_block #(
 );
 
 reg signed [ 14-1: 0] set_sp;   // set point
+reg signed [ 14-1: 0] set_pv;   // set pause value
 reg signed [ 16-1: 0] set_ival;   // integral value to set
 reg            ival_write;
 reg [  3-1: 0] pause_pid_on_sync;  // register to specify which gains (P, I, and/or D) are paused during active sync signal
 reg enable_differential_mode;  // register to specify which gains (P, I, and/or D) are paused during active sync signal
 wire pause_i_on_sync;
-assign pause_i = pause_pid_on_sync[0] & ~paused_i;
+assign pause_i = pause_pid_on_sync[0] & paused_i;
 wire pause_p_on_sync;
-assign pause_p = pause_pid_on_sync[1] & ~paused_i;
+assign pause_p = pause_pid_on_sync[1] & paused_i;
 wire pause_d_on_sync;
-assign pause_d = pause_pid_on_sync[2] & ~paused_i;
+assign pause_d = pause_pid_on_sync[2] & paused_i;
 reg [ GAINBITS-1: 0] set_kp;   // Kp
 reg [ GAINBITS-1: 0] set_ki;   // Ki
 reg [ GAINBITS-1: 0] set_kd;   // Kd
@@ -119,6 +120,7 @@ reg signed [ 14-1:0] out_min;
 always @(posedge clk_i) begin
    if (rstn_i == 1'b0) begin
       set_sp <= 14'd0;
+      set_pv <= 14'd0;
       set_ival <= 14'd0;
       pause_pid_on_sync <= {3{1'b0}};  // by default, no gains are paused on sync signal
       enable_differential_mode <= 1'b0; // by default no differential mode
@@ -134,6 +136,7 @@ always @(posedge clk_i) begin
       if (wen) begin
          if (addr==16'h100)   set_ival <= wdata[16-1:0];
          if (addr==16'h104)   set_sp  <= wdata[14-1:0];
+         if (addr==16'h130)   set_pv  <= wdata[14-1:0]; // Assigning `set_pv` at address 16'h130
          if (addr==16'h108)   set_kp  <= wdata[GAINBITS-1:0];
          if (addr==16'h10C)   set_ki  <= wdata[GAINBITS-1:0];
          if (addr==16'h110)   set_kd  <= wdata[GAINBITS-1:0];
@@ -150,6 +153,7 @@ always @(posedge clk_i) begin
 	  casez (addr)
 	     16'h100 : begin ack <= wen|ren; rdata <= int_shr; end
 	     16'h104 : begin ack <= wen|ren; rdata <= {{32-14{1'b0}},set_sp}; end
+        16'h130:  begin ack <= wen|ren; rdata <= {{32-14{1'b0}},set_pv}; end // Reading `set_pv`
 	     16'h108 : begin ack <= wen|ren; rdata <= {{32-GAINBITS{1'b0}},set_kp}; end
 	     16'h10C : begin ack <= wen|ren; rdata <= {{32-GAINBITS{1'b0}},set_ki}; end
 	     16'h110 : begin ack <= wen|ren; rdata <= {{32-GAINBITS{1'b0}},set_kd}; end
@@ -233,7 +237,6 @@ assign kp_mult = (pause_p==1'b1) ? $signed({15+GAINBITS{1'b0}}) : $signed(error)
 //formerly
 //-localparam IBW = 64; //integrator bit-width. Over-represent the integral sum to record longterm drifts
 //-reg   [15+GAINBITS-1: 0] ki_mult  ;
-localparam signed [IBW-ISR-1: 0] fixed_int_value = 1638;
 localparam IBW = ISR+16; //integrator bit-width. Over-represent the integral sum to record longterm drifts (overrepresented by 2 bits)
 reg signed  [16+GAINBITS-1: 0] ki_mult ;
 wire signed [IBW  : 0] int_sum       ;
@@ -259,9 +262,7 @@ always @(posedge clk_i) begin
 end
 
 assign int_sum = (pause_i==1'b1) ? $signed(int_reg) : $signed(ki_mult) + $signed(int_reg);
-assign int_shr = (pause_i==1'b1) ? fixed_int_value  : $signed(int_reg[IBW-1:ISR]) ;
-// assign int_shr = $signed(int_reg[IBW-1:ISR]) ;
-
+assign int_shr = $signed(int_reg[IBW-1:ISR]) ;
 
 //---------------------------------------------------------------------------------
 //  Derivative - 2 cycles delay (but treat as 1 cycle because its not
@@ -330,16 +331,23 @@ assign pid_sum = $signed(kp_reg) + $signed(int_shr) + $signed(kd_reg_s);
 
 generate 
 	if (ARBITRARY_SATURATION == 0)
-		assign dat_o = pid_out;
+      // When arbitrary saturation is disabled
+		assign dat_o = (paused_i == 1'b1) ? set_pv : pid_out;
 	else begin
+      // When arbitrary saturation is enabled
 		reg signed [ 14-1:0] out_buffer;
+      wire signed [14-1:0] output_value;
+
+      // Select between set_pv and pid_out based on paused_i
+      assign output_value = (paused_i == 1'b1) ? set_pv : pid_out;
+
 		always @(posedge clk_i) begin
-			if (pid_out >= out_max)
+			if (output_value >= out_max)
 				out_buffer <= out_max;
-			else if (pid_out <= out_min)
+			else if (output_value <= out_min)
 				out_buffer <= out_min;
 			else
-				out_buffer <= pid_out;
+				out_buffer <= output_value;
 		end
 		assign dat_o = out_buffer; 
 	end
